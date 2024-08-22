@@ -68,8 +68,11 @@ namespace FishNet.Transporting.Bayou.Client
             {
                 Scheme = scheme,
                 Host = _address,
-                Port = _port
             };
+            if(_port != 0)
+            {
+                builder.Port = _port;
+            }
             base.SetConnectionState(LocalConnectionState.Starting, false);
             _client.Connect(builder.Uri);
         }
