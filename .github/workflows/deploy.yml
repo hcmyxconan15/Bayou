@@ -22,7 +22,6 @@ jobs:
       - name: Find package.json and extract version
         id: extract_version
         run: |
-          # Tìm tất cả package.json
           MATCH_FILE=$(find . -type f -name package.json -exec grep -l '"name": "com.undercats.boyou"' {} \;)
           
           if [ -z "$MATCH_FILE" ]; then
@@ -47,8 +46,8 @@ jobs:
             exit 1
           fi
 
-          # Xóa phần /package.json để lấy thư mục gốc
-          PREFIX=$(dirname "$MATCH_FILE")
+          # Loại bỏ ./ ở đầu nếu có
+          PREFIX=$(dirname "$MATCH_FILE" | sed 's|^\./||')
           BRANCH="upm"
 
           git subtree split --prefix="$PREFIX" --branch $BRANCH
