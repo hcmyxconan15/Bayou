@@ -1,8 +1,8 @@
 {
   "name": "com.undercats.boyou",
   "version": "4.1.3",
-  "displayName": "APathFinding",
-  "description": "This is A*PathFindingPRo",
+  "displayName": "Boyou",
+  "description": "Boyou",
   "unity": "2019.1",
   "dependencies": {
  }
