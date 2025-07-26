@@ -4,30 +4,44 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'FishNet/Plugins/package.json'  # Adjust path if necessary
 
 jobs:
   deploy:
-    name: Deploy on Version Change
+    name: Deploy UPM package from main branch
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Set up Git
+      - name: Set up Git identity
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
       - name: Extract version from package.json
-        id: version
+        id: extract_version
         run: |
           VERSION=$(jq -r .version FishNet/Plugins/package.json)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
 
-      - name: Run deploy script
+      - name: Deploy UPM package (inline script)
         run: |
-          chmod +x ./deploy.sh
-          ./deploy.sh --semver $VERSION
+          set -ex
+
+          SEMVER="$VERSION"
+
+          if [ -z "$SEMVER" ]; then
+            echo "You must provide the --semver option."
+            exit 1
+          fi
+
+          PREFIX="Assets/besthttp3"
+          BRANCH="upm"
+
+          git subtree split --prefix="$PREFIX" --branch $BRANCH
+          git tag $SEMVER $BRANCH
+          git push origin $BRANCH --tags
+          git push origin --delete $BRANCH
+          git branch -D $BRANCH
