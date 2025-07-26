@@ -50,8 +50,12 @@ jobs:
           PREFIX=$(dirname "$MATCH_FILE" | sed 's|^\./||')
           BRANCH="upm"
 
+          # Tách subtree và gắn tag
           git subtree split --prefix="$PREFIX" --branch $BRANCH
-          git tag $SEMVER $BRANCH
-          git push origin $BRANCH --tags
-          git push origin --delete $BRANCH
+          git tag "$SEMVER" $BRANCH
+
+          # Chỉ đẩy tag (không đẩy nhánh)
+          git push origin --tags
+
+          # Dọn dẹp nhánh local tạm
           git branch -D $BRANCH
