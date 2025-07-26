@@ -7,11 +7,11 @@ on:
 
 jobs:
   deploy:
-    name: Deploy UPM package from main branch
+    name: Auto-detect package.json and deploy
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Git identity
@@ -19,25 +19,36 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-      - name: Extract version from package.json
+      - name: Find package.json and extract version
         id: extract_version
         run: |
-          VERSION=$(jq -r .version FishNet/Plugins/package.json)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Extracted version: $VERSION"
+          # Tìm tất cả package.json
+          MATCH_FILE=$(find . -type f -name package.json -exec grep -l '"name": "com.undercats.boyou"' {} \;)
+          
+          if [ -z "$MATCH_FILE" ]; then
+            echo "❌ Không tìm thấy package.json phù hợp!"
+            exit 1
+          fi
 
-      - name: Deploy UPM package (inline script)
+          VERSION=$(jq -r .version "$MATCH_FILE")
+          echo "MATCH_FILE=$MATCH_FILE" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          echo "✅ Found package.json at $MATCH_FILE"
+          echo "🔢 Version: $VERSION"
+
+      - name: Deploy UPM package
         run: |
           set -ex
 
           SEMVER="$VERSION"
-
           if [ -z "$SEMVER" ]; then
             echo "You must provide the --semver option."
             exit 1
           fi
 
-          PREFIX="Assets/besthttp3"
+          # Xóa phần /package.json để lấy thư mục gốc
+          PREFIX=$(dirname "$MATCH_FILE")
           BRANCH="upm"
 
           git subtree split --prefix="$PREFIX" --branch $BRANCH
